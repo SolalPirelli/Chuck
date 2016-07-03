@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8FD779F1-0C8A-4716-B3DA-9FC827202999}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Chuck</RootNamespace>
+    <AssemblyName>Chuck</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assertions.cs" />
+    <Compile Include="Infrastructure\ICancellable.cs" />
+    <Compile Include="Infrastructure\ITestDiscoverySink.cs" />
+    <Compile Include="Infrastructure\ITestResultRecorder.cs" />
+    <Compile Include="Infrastructure\ITestResultSink.cs" />
+    <Compile Include="Infrastructure\TestDataAttribute.cs" />
+    <Compile Include="Utilities\PrettyPrinter.cs" />
+    <Compile Include="Utilities\ReflectionUtilities.cs" />
+    <Compile Include="Infrastructure\TestExecutionTime.cs" />
+    <Compile Include="Infrastructure\TestPartialResult.cs" />
+    <Compile Include="Infrastructure\TestContext.cs" />
+    <Compile Include="Infrastructure\TestData.cs" />
+    <Compile Include="Infrastructure\TestExecutionContext.cs" />
+    <Compile Include="Infrastructure\TestMethod.cs" />
+    <Compile Include="Infrastructure\TestRunner.cs" />
+    <Compile Include="Infrastructure\TestLocation.cs" />
+    <Compile Include="Infrastructure\TestCreationException.cs" />
+    <Compile Include="Infrastructure\TestProvider.cs" />
+    <Compile Include="Infrastructure\TestResult.cs" />
+    <Compile Include="Infrastructure\TestFailureException.cs" />
+    <Compile Include="InlineDataAttribute.cs" />
+    <Compile Include="Matchers\Infrastructure\Assertion.cs" />
+    <Compile Include="Matchers\Infrastructure\Matcher.cs" />
+    <Compile Include="Matchers\Infrastructure\MatchResult.cs" />
+    <Compile Include="Matchers\Is.cs" />
+    <Compile Include="MethodDataAttribute.cs" />
+    <Compile Include="NoTestsAttribute.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Remoting\LongLivedMarshalByRefObject.cs" />
+    <Compile Include="Remoting\RemoteTestProxy.cs" />
+    <Compile Include="SkipAttribute.cs" />
+    <Compile Include="TestAssemblyAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.md" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
