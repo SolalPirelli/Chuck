@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace Chuck.Utilities
 {
@@ -31,6 +32,16 @@ namespace Chuck.Utilities
         {
             return method.ReturnType != typeof( void )
                 && method.ReturnType != typeof( Task );
+        }
+
+        public static bool IsInstanceOf( object value, Type type )
+        {
+            if( value == null )
+            {
+                return !type.IsValueType;
+            }
+
+            return type.IsAssignableFrom( value.GetType() );
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -18,62 +19,107 @@ namespace Chuck
 
         public MethodDataAttribute( string methodName )
         {
+            if( methodName == null )
+            {
+                throw new ArgumentNullException( nameof( methodName ) );
+            }
+
             MethodName = methodName;
+            CacheValues = true;
         }
 
 
-        public override IEnumerable<TestData> GetData( TestExecutionContext executionContext, TestContext testContext )
+        public override IEnumerable<TestData> GetData( TestExecutionContext context )
         {
             if( !CacheValues )
             {
-                return GetValues( executionContext, testContext );
+                return GetValues( context );
             }
 
-            var containingType = ContainingType ?? testContext.Method.DeclaringType;
-            var cacheKey = $"Data:{containingType.FullName}_{MethodName}";
+            var containingType = ContainingType ?? context.Method.DeclaringType;
+            var cacheKey = $"{containingType.FullName}_{MethodName}";
 
-            if( !executionContext.ExtraProperties.ContainsKey( cacheKey ) )
+            if( !context.ExtraData.Contains( typeof( MethodDataAttribute ), cacheKey ) )
             {
-                executionContext.ExtraProperties[cacheKey] = GetValues( executionContext, testContext );
+                context.ExtraData.Set( typeof( MethodDataAttribute ), cacheKey, GetValues( context ) );
             }
 
-            return (TestData[]) executionContext.ExtraProperties[cacheKey];
+            return context.ExtraData.Get<TestData[]>( typeof( MethodDataAttribute ), cacheKey );
         }
 
-        private TestData[] GetValues( TestExecutionContext executionContext, TestContext testContext )
+        private TestData[] GetValues( TestExecutionContext context )
         {
-            var containingType = ContainingType ?? testContext.Method.DeclaringType;
+            var containingType = ContainingType ?? context.Method.DeclaringType;
 
-            var candidates = containingType.GetTypeInfo().GetMethods( BindingFlags.Public | BindingFlags.Static );
-            if( !candidates.Any() )
+            var candidates = containingType.GetTypeInfo()
+                                           .GetMethods( BindingFlags.Public | BindingFlags.Static )
+                                           .Where( m => m.Name == MethodName )
+                                           .ToArray();
+            if( candidates.Length == 0 )
             {
                 throw new TestCreationException(
-                    $"No method named {MethodName} found on type {containingType.FullName}."
+                    $"No static method named {MethodName} found on type {containingType.FullName}."
                 );
             }
-            if( candidates.Skip( 1 ).Any() )
+            if( candidates.Length > 1 )
             {
                 throw new TestCreationException(
-                   $"More than one method named {MethodName} was found on type {containingType.FullName}"
+                   $"More than one static method named {MethodName} was found on type {containingType.FullName}"
                 );
             }
 
-            var method = candidates.Single();
-            // TODO can we relax this to allow any enumerable of any array type?
-            if( method.ReturnType != typeof( IEnumerable<object[]> ) )
+            var method = candidates[0];
+            var targetParameters = context.Method.GetParameters();
+            if( targetParameters.Length == 1 )
             {
-                throw new TestCreationException(
-                    $"The return type of method {MethodName} must be IEnumerable<object[]>, not {method.ReturnType.Name}."
-                );
+                var targetType = typeof( IEnumerable<> ).MakeGenericType( targetParameters[0].ParameterType );
+
+                if( !targetType.IsAssignableFrom( method.ReturnType ) )
+                {
+                    throw new TestCreationException(
+                        "Error while creating data for a test method with a single argument."
+                      + Environment.NewLine
+                     + $"The return type of method {MethodName} must be convertible "
+                     + $"to IEnumerable<{targetParameters[0].ParameterType}>, "
+                     + $"not {method.ReturnType.Name}."
+                    );
+                }
+
+            }
+            else
+            {
+
+                if( !typeof( IEnumerable<IEnumerable> ).IsAssignableFrom( method.ReturnType ) )
+                {
+                    throw new TestCreationException(
+                        "Error while creating data for a test method with multiple arguments."
+                      + Environment.NewLine
+                     + $"The return type of method {MethodName} must be an enumerable of enumerables, "
+                      + "such as IEnumerable<object[]>, IEnumerable<int>[] or HashSet<string[]>, "
+                     + $"not {method.ReturnType.Name}."
+                    );
+                }
             }
 
             var items = method.Invoke( null, method.GetParameters()
-                                                   .Select( p => executionContext.Services.GetService( p.ParameterType ) )
+                                                   .Select( p => context.Services.GetService( p.ParameterType ) )
                                                    .ToArray() );
-            return ( (IEnumerable<object[]>) items ).Select( args =>
+
+            return ( (IEnumerable) items ).Cast<object>().Select( arg =>
             {
-                var name = PrettyPrinter.Print( testContext.Method, args );
-                return new TestData( name, args );
+                object[] arrayArgs;
+
+                if( targetParameters.Length == 1 )
+                {
+                    arrayArgs = new[] { arg };
+                }
+                else
+                {
+                    arrayArgs = ( (IEnumerable) arg ).Cast<object>().ToArray();
+                }
+
+                var name = PrettyPrinter.Print( context.Method, arrayArgs );
+                return new TestData( name, arrayArgs );
             } ).ToArray();
         }
     }

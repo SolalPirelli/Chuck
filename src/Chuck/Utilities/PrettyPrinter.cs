@@ -8,14 +8,14 @@ namespace Chuck.Utilities
 {
     public static class PrettyPrinter
     {
-        public static string Print(object value)
+        public static string Print( object value )
         {
             return value.ToString(); // TODO
         }
 
-        public static string Print(MethodInfo method, object[] args)
+        public static string Print( MethodInfo method, object[] args )
         {
-            return $"{method.Name} ({string.Join( ", ", args.Select( Print ) )})";
+            return $"{method.Name}({string.Join( ", ", args.Select( Print ) )})";
         }
     }
 }

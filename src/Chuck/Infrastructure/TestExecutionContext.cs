@@ -1,19 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Reflection;
 
 namespace Chuck.Infrastructure
 {
     public sealed class TestExecutionContext
     {
+        public MethodInfo Method { get; }
         public IServiceProvider Services { get; }
-        // TODO consider a smart dic with Get<T> and owner types to ensure namespacing
-        public Dictionary<string, object> ExtraProperties { get; }
+        public TestPropertyBag ExtraData { get; }
 
 
-        public TestExecutionContext( IServiceProvider services )
+        public TestExecutionContext( MethodInfo method, IServiceProvider services,TestPropertyBag extraData )
         {
+            Method = method;
             Services = services;
-            ExtraProperties = new Dictionary<string, object>();
+            ExtraData = extraData;
         }
     }
 }

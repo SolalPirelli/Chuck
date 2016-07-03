@@ -15,14 +15,14 @@ namespace Chuck.Infrastructure
 
         private readonly LazyServiceProvider _services;
         private readonly TestContainerCreator _containers;
-        private readonly TestExecutionContext _context;
+        private readonly TestPropertyBag _extraData;
 
 
         public TestRunner()
         {
             _services = new LazyServiceProvider();
             _containers = new TestContainerCreator( _services );
-            _context = new TestExecutionContext( _services );
+            _extraData = new TestPropertyBag();
         }
 
 
@@ -171,9 +171,9 @@ namespace Chuck.Infrastructure
                 dataAttributes = NullDataAttribute.Instance;
             }
 
-            var testContext = new TestContext( testMethod );
+            var context = new TestExecutionContext( testMethod, _services, _extraData );
 
-            return dataAttributes.SelectMany( d => d.GetData( _context, testContext ) )
+            return dataAttributes.SelectMany( d => d.GetData( context ) )
                                  .Select( d => GetRunner( testMethod, d ) );
         }
 
@@ -359,9 +359,9 @@ namespace Chuck.Infrastructure
         {
             public static readonly NullDataAttribute[] Instance = new[] { new NullDataAttribute() };
 
-            public override IEnumerable<TestData> GetData( TestExecutionContext executionContext, TestContext testContext )
+            public override IEnumerable<TestData> GetData( TestExecutionContext context )
             {
-                return new[] { new TestData( testContext.Method.Name, null ) };
+                return new[] { new TestData( context.Method.Name, null ) };
             }
         }
     }

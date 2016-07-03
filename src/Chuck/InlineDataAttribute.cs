@@ -8,16 +8,23 @@ namespace Chuck
     [AttributeUsage( AttributeTargets.Method, AllowMultiple = true, Inherited = true )]
     public sealed class InlineDataAttribute : TestDataAttribute
     {
-        private object[] _values;
+        private readonly object[] _values;
+
 
         public InlineDataAttribute( params object[] values )
         {
+            if( values == null )
+            {
+                throw new ArgumentNullException( nameof( values ) );
+            }
+
             _values = values;
         }
 
-        public override IEnumerable<TestData> GetData( TestExecutionContext executionContext, TestContext testContext )
+
+        public override IEnumerable<TestData> GetData( TestExecutionContext context )
         {
-            var name = PrettyPrinter.Print( testContext.Method, _values );
+            var name = PrettyPrinter.Print( context.Method, _values );
             return new[] { new TestData( name, _values ) };
         }
     }

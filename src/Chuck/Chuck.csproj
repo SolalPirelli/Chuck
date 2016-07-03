@@ -39,11 +39,11 @@
     <Compile Include="Infrastructure\ITestResultRecorder.cs" />
     <Compile Include="Infrastructure\ITestResultSink.cs" />
     <Compile Include="Infrastructure\TestDataAttribute.cs" />
+    <Compile Include="Infrastructure\TestPropertyBag.cs" />
     <Compile Include="Utilities\PrettyPrinter.cs" />
     <Compile Include="Utilities\ReflectionUtilities.cs" />
     <Compile Include="Infrastructure\TestExecutionTime.cs" />
     <Compile Include="Infrastructure\TestPartialResult.cs" />
-    <Compile Include="Infrastructure\TestContext.cs" />
     <Compile Include="Infrastructure\TestData.cs" />
     <Compile Include="Infrastructure\TestExecutionContext.cs" />
     <Compile Include="Infrastructure\TestMethod.cs" />
@@ -65,9 +65,6 @@
     <Compile Include="Remoting\RemoteTestProxy.cs" />
     <Compile Include="SkipAttribute.cs" />
     <Compile Include="TestAssemblyAttribute.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ReadMe.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
