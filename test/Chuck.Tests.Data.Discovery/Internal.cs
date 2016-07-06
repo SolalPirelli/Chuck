@@ -1,4 +1,4 @@
-﻿namespace Chuck.Tests.Data
+﻿namespace Chuck.Tests.Data.Discovery
 {
     internal sealed class Internal
     {

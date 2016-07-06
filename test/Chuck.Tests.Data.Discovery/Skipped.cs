@@ -1,4 +1,4 @@
-﻿namespace Chuck.Tests.Data
+﻿namespace Chuck.Tests.Data.Discovery
 {
     [Skip( "This class is skipped." )]
     public sealed class Skipped

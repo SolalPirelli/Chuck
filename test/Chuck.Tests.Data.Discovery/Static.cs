@@ -1,4 +1,4 @@
-﻿namespace Chuck.Tests.Data
+﻿namespace Chuck.Tests.Data.Discovery
 {
     public static class Static
     {

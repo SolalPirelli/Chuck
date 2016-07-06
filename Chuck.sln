@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chuck.VisualStudio.SelfTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chuck.Tests", "test\Chuck.Tests\Chuck.Tests.csproj", "{25DAB87A-95DB-418C-8557-D29954259E03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chuck.Tests.Data", "test\Chuck.Tests.Data\Chuck.Tests.Data.csproj", "{E65E3D23-5B7C-4C56-A308-39BB61E4D5AC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chuck.Tests.Data.Discovery", "test\Chuck.Tests.Data.Discovery\Chuck.Tests.Data.Discovery.csproj", "{E65E3D23-5B7C-4C56-A308-39BB61E4D5AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

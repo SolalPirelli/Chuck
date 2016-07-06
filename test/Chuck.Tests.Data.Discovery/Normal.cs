@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Chuck.Tests.Data
+namespace Chuck.Tests.Data.Discovery
 {
     public sealed class Normal
     {
