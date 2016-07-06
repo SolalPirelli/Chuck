@@ -6,9 +6,9 @@ namespace Chuck.Remoting
 {
     public sealed class RemoteTestProxy : LongLivedMarshalByRefObject
     {
-        public void LoadTests( string assemblyLocation, ITestDiscoverySink discoverySink )
+        public void DiscoverTests( string assemblyLocation, ITestDiscoverySink discoverySink )
         {
-            TestProvider.LoadTests( assemblyLocation, discoverySink );
+            TestDiscoverer.DiscoverTests( assemblyLocation, discoverySink );
         }
 
         public WaitHandle RunTests( string assemblyLocation, ITestResultSink resultSink )
@@ -31,7 +31,7 @@ namespace Chuck.Remoting
             try
             {
                 var tests = new ListDiscoverySink();
-                LoadTests( assemblyLocation, tests );
+                DiscoverTests( assemblyLocation, tests );
 
                 using( var runner = new TestRunner() )
                 {

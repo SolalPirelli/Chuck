@@ -26,7 +26,7 @@ namespace Chuck.VisualStudio
                     {
                         try
                         {
-                            proxy.LoadTests( assemblyPath, sink );
+                            proxy.DiscoverTests( assemblyPath, sink );
                         }
                         catch( Exception e )
                         {

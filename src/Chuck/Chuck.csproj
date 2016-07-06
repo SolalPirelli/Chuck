@@ -50,7 +50,7 @@
     <Compile Include="Infrastructure\TestRunner.cs" />
     <Compile Include="Infrastructure\TestLocation.cs" />
     <Compile Include="Infrastructure\TestCreationException.cs" />
-    <Compile Include="Infrastructure\TestProvider.cs" />
+    <Compile Include="Infrastructure\TestDiscoverer.cs" />
     <Compile Include="Infrastructure\TestResult.cs" />
     <Compile Include="Infrastructure\TestFailureException.cs" />
     <Compile Include="InlineDataAttribute.cs" />

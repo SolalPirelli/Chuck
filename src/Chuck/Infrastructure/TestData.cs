@@ -5,8 +5,8 @@
         public string Name { get; }
         public object[] Arguments { get; }
 
-        
-        public TestData(string name, object[] arguments)
+
+        public TestData( string name, object[] arguments )
         {
             Name = name;
             Arguments = arguments;

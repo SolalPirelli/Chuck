@@ -1,8 +1,8 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System;
+using System.Threading.Tasks;
 
 namespace Chuck.Utilities
 {
