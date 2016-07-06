@@ -1,7 +1,9 @@
-﻿namespace Chuck.Infrastructure
+﻿using System;
+
+namespace Chuck.Infrastructure
 {
-    public interface ITestResultSink : ICancellable
+    public interface ITestResultSink : ICancellable, IDisposable
     {
-        ITestResultRecorder Record( TestMethod testMethod );
+        void Record( TestResult result );
     }
 }

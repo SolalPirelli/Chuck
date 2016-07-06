@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Chuck.Tests</RootNamespace>
     <AssemblyName>Chuck.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -66,7 +67,7 @@
       <Project>{8fd779f1-0c8a-4716-b3da-9fc827202999}</Project>
       <Name>Chuck</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Chuck.Tests.Data\Chuck.Tests.Data.Discovery.csproj">
+    <ProjectReference Include="..\Chuck.Tests.Data.Discovery\Chuck.Tests.Data.Discovery.csproj">
       <Project>{e65e3d23-5b7c-4c56-a308-39bb61e4d5ac}</Project>
       <Name>Chuck.Tests.Data.Discovery</Name>
     </ProjectReference>

@@ -20,22 +20,23 @@ namespace Chuck.Tests.Infrastructure
         [Fact]
         public void AllTestsAreDiscovered()
         {
-            var assembly = Assembly.Load( "Chuck.Tests.Data" );
+            var assembly = Assembly.Load( "Chuck.Tests.Data.Discovery" );
             var tests = new TestList();
             TestDiscoverer.DiscoverTests( assembly.Location, tests );
 
             var assemblyName = assembly.GetName().FullName;
+            var ns = "Chuck.Tests.Data.Discovery";
             Assert.Equal( new[]
             {
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Nested+Inner", "Method" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Normal", "Async" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Normal", "Int" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Normal", "Method" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Normal", "Static" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Skipped", "Method" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Skipped", "SkippedMethod" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Static", "Method" ),
-                new TestMethod( assemblyName, "Chuck.Tests.Data.Visibilities", "Public" )
+                new TestMethod( assemblyName, ns + ".Nested+Inner", "Method" ),
+                new TestMethod( assemblyName, ns + ".Normal", "Async" ),
+                new TestMethod( assemblyName, ns + ".Normal", "Int" ),
+                new TestMethod( assemblyName, ns + ".Normal", "Method" ),
+                new TestMethod( assemblyName, ns + ".Normal", "Static" ),
+                new TestMethod( assemblyName, ns + ".Skipped", "Method" ),
+                new TestMethod( assemblyName, ns + ".Skipped", "SkippedMethod" ),
+                new TestMethod( assemblyName, ns + ".Static", "Method" ),
+                new TestMethod( assemblyName, ns + ".Visibilities", "Public" )
             }, tests.Values );
         }
 

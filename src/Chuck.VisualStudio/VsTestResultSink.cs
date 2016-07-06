@@ -9,120 +9,97 @@ namespace Chuck.VisualStudio
     {
         private readonly string _source;
         private readonly ITestExecutionRecorder _recorder;
+        private readonly ICancellable _cancellable;
+        private readonly VS.TestCase _vsTestCase;
+        private VS.TestOutcome _finalOutcome;
+        private bool _atLeastOneSkipped;
 
 
-        public bool IsCancelled { get; private set; }
+        public bool IsCancelled => _cancellable.IsCancelled;
 
 
-        public VsTestResultSink( string source, ITestExecutionRecorder recorder )
+        public VsTestResultSink( TestMethod testMethod, string source, ITestExecutionRecorder recorder, ICancellable cancellable )
         {
             _source = source;
             _recorder = recorder;
+            _cancellable = cancellable;
+            _vsTestCase = ConvertToTestCase( testMethod );
+
+            _recorder.RecordStart( _vsTestCase );
         }
 
 
-        public ITestResultRecorder Record( TestMethod testMethod )
+        public void Record( TestResult result )
         {
-            return new VsTestResultRecorder( this, testMethod );
+            var vsTestResult = ConvertToTestResult( result );
+            _recorder.RecordResult( vsTestResult );
+
+            switch( vsTestResult.Outcome )
+            {
+                case VS.TestOutcome.Failed:
+                case VS.TestOutcome.NotFound:
+                    _finalOutcome = vsTestResult.Outcome;
+                    break;
+
+                case VS.TestOutcome.Skipped:
+                    _atLeastOneSkipped = true;
+                    break;
+            }
+        }
+        
+        public override void Dispose()
+        {
+            if( _finalOutcome == VS.TestOutcome.None )
+            {
+                _finalOutcome = _atLeastOneSkipped ? VS.TestOutcome.Skipped : VS.TestOutcome.Passed;
+            }
+
+            _recorder.RecordEnd( _vsTestCase, _finalOutcome );
+
+            base.Dispose();
         }
 
-        public void Close()
+
+        private VS.TestCase ConvertToTestCase( TestMethod testMethod )
         {
-            IsCancelled = true;
+            return new VS.TestCase( testMethod.FullyQualifiedName, VsTestExecutor.Uri, _source );
         }
 
-
-        private sealed class VsTestResultRecorder : LongLivedMarshalByRefObject, ITestResultRecorder
+        private VS.TestResult ConvertToTestResult( TestResult testResult )
         {
-            private readonly VsTestResultSink _sink;
-            private readonly VS.TestCase _vsTestCase;
-            private VS.TestOutcome _finalOutcome;
-            private bool _atLeastOneSkipped;
-
-
-            public bool IsCancelled => _sink.IsCancelled;
-
-
-            public VsTestResultRecorder( VsTestResultSink sink, TestMethod testMethod )
+            var result = new VS.TestResult( _vsTestCase )
             {
-                _sink = sink;
-                _vsTestCase = ConvertToTestCase( testMethod );
+                DisplayName = testResult.Name
+            };
 
-                _sink._recorder.RecordStart( _vsTestCase );
+            if( testResult.ExecutionTime != null )
+            {
+                result.StartTime = testResult.ExecutionTime.Start;
+                result.Duration = testResult.ExecutionTime.Duration;
+                result.EndTime = result.StartTime + result.Duration;
             }
 
-            public void Record( TestResult result )
+            if( testResult.SkipReason != null )
             {
-                var vsTestResult = ConvertToTestResult( result );
-                _sink._recorder.RecordResult( vsTestResult );
-
-                switch( vsTestResult.Outcome )
-                {
-                    case VS.TestOutcome.Failed:
-                    case VS.TestOutcome.NotFound:
-                        _finalOutcome = vsTestResult.Outcome;
-                        break;
-
-                    case VS.TestOutcome.Skipped:
-                        _atLeastOneSkipped = true;
-                        break;
-                }
+                result.Outcome = VS.TestOutcome.Skipped;
+                result.Messages.Add( new VS.TestResultMessage( VS.TestResultMessage.AdditionalInfoCategory, testResult.SkipReason ) );
+            }
+            else if( testResult.FailureMessage != null )
+            {
+                result.Outcome = VS.TestOutcome.Failed;
+                result.ErrorMessage = testResult.FailureMessage;
+            }
+            else if( testResult.ErrorMessage != null )
+            {
+                result.Outcome = VS.TestOutcome.Failed;
+                result.ErrorMessage = testResult.ErrorMessage;
+            }
+            else
+            {
+                result.Outcome = VS.TestOutcome.Passed;
             }
 
-            public override void Dispose()
-            {
-                if( _finalOutcome == VS.TestOutcome.None )
-                {
-                    _finalOutcome = _atLeastOneSkipped ? VS.TestOutcome.Skipped : VS.TestOutcome.Passed;
-                }
-
-                _sink._recorder.RecordEnd( _vsTestCase, _finalOutcome );
-
-                base.Dispose();
-            }
-
-
-            private VS.TestCase ConvertToTestCase( TestMethod testMethod )
-            {
-                return new VS.TestCase( testMethod.FullyQualifiedName, VsTestExecutor.Uri, _sink._source );
-            }
-
-            private VS.TestResult ConvertToTestResult( TestResult testResult )
-            {
-                var result = new VS.TestResult( _vsTestCase )
-                {
-                    DisplayName = testResult.Name
-                };
-
-                if( testResult.ExecutionTime != null )
-                {
-                    result.StartTime = testResult.ExecutionTime.Start;
-                    result.Duration = testResult.ExecutionTime.Duration;
-                    result.EndTime = result.StartTime + result.Duration;
-                }
-
-                if( testResult.SkipReason != null )
-                {
-                    result.Outcome = VS.TestOutcome.Skipped;
-                    result.Messages.Add( new VS.TestResultMessage( VS.TestResultMessage.AdditionalInfoCategory, testResult.SkipReason ) );
-                }
-                else if( testResult.FailureMessage != null )
-                {
-                    result.Outcome = VS.TestOutcome.Failed;
-                    result.ErrorMessage = testResult.FailureMessage;
-                }
-                else if( testResult.ErrorMessage != null )
-                {
-                    result.Outcome = VS.TestOutcome.Failed;
-                    result.ErrorMessage = testResult.ErrorMessage;
-                }
-                else
-                {
-                    result.Outcome = VS.TestOutcome.Passed;
-                }
-
-                return result;
-            }
+            return result;
         }
     }
 }

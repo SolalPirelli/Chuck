@@ -26,7 +26,7 @@ namespace Chuck.Infrastructure
         }
 
 
-        public async Task RunAsync( TestMethod testMethod, ITestResultSink resultSink )
+        public async Task RunAsync( TestMethod testMethod, ITestResultSink resultRecorder )
         {
             var assembly = Assembly.Load( testMethod.AssemblyName );
             var type = assembly.GetType( testMethod.TypeName );
@@ -35,15 +35,12 @@ namespace Chuck.Infrastructure
 
             foreach( var method in methods )
             {
-                if( resultSink.IsCancelled )
+                if( resultRecorder.IsCancelled )
                 {
                     return;
                 }
 
-                using( var recorder = resultSink.Record( testMethod ) )
-                {
-                    await RunAsync( method, recorder );
-                }
+                await RunAsync( method, resultRecorder );
             }
         }
 
@@ -53,7 +50,7 @@ namespace Chuck.Infrastructure
         }
 
 
-        private async Task RunAsync( MethodInfo method, ITestResultRecorder resultRecorder )
+        private async Task RunAsync( MethodInfo method, ITestResultSink resultRecorder )
         {
             var skipAttribute = method.GetCustomAttribute<SkipAttribute>() ?? method.DeclaringType.GetCustomAttribute<SkipAttribute>();
             if( skipAttribute != null )

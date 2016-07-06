@@ -11,25 +11,26 @@ namespace Chuck.Remoting
             TestDiscoverer.DiscoverTests( assemblyLocation, discoverySink );
         }
 
-        public WaitHandle RunTests( string assemblyLocation, ITestResultSink resultSink )
+        public WaitHandle RunTests( string assemblyLocation, ITestResultSinkFactory resultSinkFactory )
         {
             var waitHandle = new ManualResetEvent( false );
-            RunTests( assemblyLocation, resultSink, waitHandle );
+            RunTests( assemblyLocation, resultSinkFactory, waitHandle );
             return waitHandle;
         }
 
-        public WaitHandle RunTests( IReadOnlyList<TestMethod> testMethods, ITestResultSink resultSink )
+        public WaitHandle RunTests( IReadOnlyList<TestMethod> testMethods, ITestResultSinkFactory resultSinkFactory )
         {
             var waitHandle = new ManualResetEvent( false );
-            RunTests( testMethods, resultSink, waitHandle );
+            RunTests( testMethods, resultSinkFactory, waitHandle );
             return waitHandle;
         }
 
 
-        private async void RunTests( string assemblyLocation, ITestResultSink resultSink, EventWaitHandle waitHandle )
+        private async void RunTests( string assemblyLocation, ITestResultSinkFactory resultSinkFactory, EventWaitHandle waitHandle )
         {
             try
             {
+                // TODO this is suboptimal, have a sink that immediately executes instead
                 var tests = new ListDiscoverySink();
                 DiscoverTests( assemblyLocation, tests );
 
@@ -37,7 +38,10 @@ namespace Chuck.Remoting
                 {
                     foreach( var test in tests.Values )
                     {
-                        await runner.RunAsync( test, resultSink );
+                        using( var resultSink = resultSinkFactory.Create( test ) )
+                        {
+                            await runner.RunAsync( test, resultSink );
+                        }
                     }
                 }
             }
@@ -47,7 +51,7 @@ namespace Chuck.Remoting
             }
         }
 
-        private async void RunTests( IReadOnlyList<TestMethod> testMethods, ITestResultSink resultSink, EventWaitHandle waitHandle )
+        private async void RunTests( IReadOnlyList<TestMethod> testMethods, ITestResultSinkFactory resultSinkFactory, EventWaitHandle waitHandle )
         {
             try
             {
@@ -55,7 +59,10 @@ namespace Chuck.Remoting
                 {
                     foreach( var test in testMethods )
                     {
-                        await runner.RunAsync( test, resultSink );
+                        using( var resultSink = resultSinkFactory.Create( test ) )
+                        {
+                            await runner.RunAsync( test, resultSink );
+                        }
                     }
                 }
             }

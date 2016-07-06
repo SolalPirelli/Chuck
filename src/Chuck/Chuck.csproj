@@ -36,10 +36,10 @@
     <Compile Include="Assertions.cs" />
     <Compile Include="Infrastructure\ICancellable.cs" />
     <Compile Include="Infrastructure\ITestDiscoverySink.cs" />
-    <Compile Include="Infrastructure\ITestResultRecorder.cs" />
     <Compile Include="Infrastructure\ITestResultSink.cs" />
     <Compile Include="Infrastructure\TestDataAttribute.cs" />
     <Compile Include="Infrastructure\TestPropertyBag.cs" />
+    <Compile Include="Remoting\ITestResultSinkFactory.cs" />
     <Compile Include="Utilities\PrettyPrinter.cs" />
     <Compile Include="Utilities\ReflectionUtilities.cs" />
     <Compile Include="Infrastructure\TestExecutionTime.cs" />

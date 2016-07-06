@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppDomainManager.cs" />
+    <Compile Include="Cancellable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VsCompatibility.cs" />
     <Compile Include="VsTestDiscoverer.cs" />
@@ -44,6 +45,7 @@
     <Compile Include="VsTestExecutor.cs" />
     <Compile Include="VsTestProperties.cs" />
     <Compile Include="VsTestResultSink.cs" />
+    <Compile Include="VsTestResultSinkFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chuck\Chuck.csproj">

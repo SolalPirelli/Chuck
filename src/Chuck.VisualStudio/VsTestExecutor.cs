@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Chuck.Infrastructure;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
@@ -15,28 +14,29 @@ namespace Chuck.VisualStudio
         public const string Id = "executor://Chuck/v1";
         public static readonly Uri Uri = new Uri( Id );
 
-        private readonly List<VsTestResultSink> _openSinks = new List<VsTestResultSink>();
+
+        private Cancellable _cancellable;
 
 
         public void RunTests( IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle )
         {
+            _cancellable = new Cancellable();
+
             foreach( var assemblyPath in sources )
             {
                 using( var manager = new AppDomainManager( assemblyPath ) )
                 using( var proxy = manager.CreateProxy() )
-                using( var sink = new VsTestResultSink( assemblyPath, frameworkHandle ) )
+                using( var sinkFactory = new VsTestResultSinkFactory( assemblyPath, frameworkHandle,_cancellable ) )
                 {
-                    _openSinks.Add( sink );
-
-                    proxy.RunTests( assemblyPath, sink ).WaitOne();
-
-                    _openSinks.Remove( sink );
+                    proxy.RunTests( assemblyPath, sinkFactory ).WaitOne();
                 }
             }
         }
 
         public void RunTests( IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle )
         {
+            _cancellable = new Cancellable();
+
             foreach( var assemblyTests in tests.GroupBy( t => t.Source ) )
             {
                 using( var manager = new AppDomainManager( assemblyTests.Key ) )
@@ -57,20 +57,16 @@ namespace Chuck.VisualStudio
                         return new TestMethod( assemblyName, typeName, name );
                     } ).Where( t => t != null ).ToArray();
 
-                    using( var sink = new VsTestResultSink( assemblyTests.Key, frameworkHandle ) )
+                    using( var sinkFactory = new VsTestResultSinkFactory( assemblyTests.Key, frameworkHandle,_cancellable ) )
                     {
-                        _openSinks.Add( sink );
-
                         try
                         {
-                            proxy.RunTests( testMethods, sink ).WaitOne();
+                            proxy.RunTests( testMethods, sinkFactory ).WaitOne();
                         }
                         catch( Exception e )
                         {
                             frameworkHandle.SendMessage( TestMessageLevel.Error, e.ToString() );
                         }
-
-                        _openSinks.Remove( sink );
                     }
                 }
             }
@@ -79,10 +75,7 @@ namespace Chuck.VisualStudio
 
         public void Cancel()
         {
-            foreach( var sink in _openSinks.ToArray() ) // Clone the collection to avoid race conditions
-            {
-                sink.Close();
-            }
+            _cancellable.Cancel();
         }
     }
 }

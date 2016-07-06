@@ -7,10 +7,11 @@
     <ProjectGuid>{E65E3D23-5B7C-4C56-A308-39BB61E4D5AC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Chuck.Tests.Data</RootNamespace>
-    <AssemblyName>Chuck.Tests.Data</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <RootNamespace>Chuck.Tests.Data.Discovery</RootNamespace>
+    <AssemblyName>Chuck.Tests.Data.Discovery</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
