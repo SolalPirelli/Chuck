@@ -12,7 +12,7 @@ namespace Chuck.VisualStudio
         private readonly ITestCaseDiscoverySink _vsDiscoverySink;
 
 
-        public bool IsCancelled { get; private set; }
+        public bool IsClosed { get; private set; }
 
 
         public VsTestDiscoverySink( string source, ITestCaseDiscoverySink vsDiscoverySink )
@@ -24,7 +24,7 @@ namespace Chuck.VisualStudio
 
         public void Discover( TestMethod testMethod )
         {
-            if( IsCancelled )
+            if( IsClosed )
             {
                 return;
             }
@@ -50,7 +50,7 @@ namespace Chuck.VisualStudio
 
         public void Close()
         {
-            IsCancelled = true;
+            IsClosed = true;
         }
     }
 }

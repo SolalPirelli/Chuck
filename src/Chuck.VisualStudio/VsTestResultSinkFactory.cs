@@ -8,20 +8,20 @@ namespace Chuck.VisualStudio
     {
         private readonly string _source;
         private readonly ITestExecutionRecorder _recorder;
-        private readonly ICancellable _cancellable;
+        private readonly ICloseable _closeable;
 
 
-        public VsTestResultSinkFactory( string source, ITestExecutionRecorder recorder, ICancellable cancellable )
+        public VsTestResultSinkFactory( string source, ITestExecutionRecorder recorder, ICloseable closeable )
         {
             _source = source;
             _recorder = recorder;
-            _cancellable = cancellable;
+            _closeable = closeable;
         }
 
 
         public ITestResultSink Create( TestMethod testMethod )
         {
-            return new VsTestResultSink( testMethod, _source, _recorder, _cancellable );
+            return new VsTestResultSink( testMethod, _source, _recorder, _closeable );
         }
     }
 }

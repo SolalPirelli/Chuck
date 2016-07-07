@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using Chuck.Infrastructure;
 using Xunit;
 
-namespace Chuck.Tests.Infrastructure
+namespace Chuck.Infrastructure.Tests
 {
     public sealed class TestDiscovererTests
     {
@@ -33,10 +32,7 @@ namespace Chuck.Tests.Infrastructure
                 new TestMethod( assemblyName, ns + ".Normal", "Int" ),
                 new TestMethod( assemblyName, ns + ".Normal", "Method" ),
                 new TestMethod( assemblyName, ns + ".Normal", "Static" ),
-                new TestMethod( assemblyName, ns + ".Skipped", "Method" ),
-                new TestMethod( assemblyName, ns + ".Skipped", "SkippedMethod" ),
-                new TestMethod( assemblyName, ns + ".Static", "Method" ),
-                new TestMethod( assemblyName, ns + ".Visibilities", "Public" )
+                new TestMethod( assemblyName, ns + ".Static", "Method" )
             }, tests.Values );
         }
 
@@ -45,7 +41,7 @@ namespace Chuck.Tests.Infrastructure
         {
             public List<TestMethod> Values { get; } = new List<TestMethod>();
 
-            public bool IsCancelled => false;
+            public bool IsClosed => false;
 
 
             public void Discover( TestMethod testMethod )

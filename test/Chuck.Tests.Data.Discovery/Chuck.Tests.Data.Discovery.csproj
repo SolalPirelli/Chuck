@@ -40,9 +40,7 @@
     <Compile Include="NoTests.cs" />
     <Compile Include="ValueType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Skipped.cs" />
     <Compile Include="Static.cs" />
-    <Compile Include="Visibilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Chuck\Chuck.csproj">

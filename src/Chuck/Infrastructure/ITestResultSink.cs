@@ -2,7 +2,7 @@
 
 namespace Chuck.Infrastructure
 {
-    public interface ITestResultSink : ICancellable, IDisposable
+    public interface ITestResultSink : ICloseable, IDisposable
     {
         void Record( TestResult result );
     }

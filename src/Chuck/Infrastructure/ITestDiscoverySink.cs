@@ -1,6 +1,6 @@
 ﻿namespace Chuck.Infrastructure
 {
-    public interface ITestDiscoverySink : ICancellable
+    public interface ITestDiscoverySink : ICloseable
     {
         void Discover( TestMethod testMethod );
     }

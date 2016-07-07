@@ -75,7 +75,7 @@ namespace Chuck.Remoting
 
         private sealed class ListDiscoverySink : ITestDiscoverySink
         {
-            public bool IsCancelled { get; } = false;
+            public bool IsClosed { get; } = false;
 
             public List<TestMethod> Values { get; } = new List<TestMethod>();
 

@@ -2,7 +2,7 @@
 
 namespace Chuck.Tests.Data.Discovery
 {
-    public sealed class Normal
+    public class Normal
     {
         public void Method() { }
 
@@ -11,5 +11,11 @@ namespace Chuck.Tests.Data.Discovery
         public Task Async() { return Task.FromResult( 0 ); }
 
         public int Int() { return 0; }
+
+        protected void Protected() { }
+
+        private void Private() { }
+
+        internal void Internal() { }
     }
 }

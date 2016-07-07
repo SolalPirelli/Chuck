@@ -15,18 +15,16 @@ namespace Chuck.VisualStudio
         public static readonly Uri Uri = new Uri( Id );
 
 
-        private Cancellable _cancellable;
+        private CloseableSource _closeableSource = new CloseableSource();
 
 
         public void RunTests( IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle )
         {
-            _cancellable = new Cancellable();
-
             foreach( var assemblyPath in sources )
             {
                 using( var manager = new AppDomainManager( assemblyPath ) )
                 using( var proxy = manager.CreateProxy() )
-                using( var sinkFactory = new VsTestResultSinkFactory( assemblyPath, frameworkHandle,_cancellable ) )
+                using( var sinkFactory = new VsTestResultSinkFactory( assemblyPath, frameworkHandle, _closeableSource.Create() ) )
                 {
                     proxy.RunTests( assemblyPath, sinkFactory ).WaitOne();
                 }
@@ -35,8 +33,6 @@ namespace Chuck.VisualStudio
 
         public void RunTests( IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle )
         {
-            _cancellable = new Cancellable();
-
             foreach( var assemblyTests in tests.GroupBy( t => t.Source ) )
             {
                 using( var manager = new AppDomainManager( assemblyTests.Key ) )
@@ -57,7 +53,7 @@ namespace Chuck.VisualStudio
                         return new TestMethod( assemblyName, typeName, name );
                     } ).Where( t => t != null ).ToArray();
 
-                    using( var sinkFactory = new VsTestResultSinkFactory( assemblyTests.Key, frameworkHandle,_cancellable ) )
+                    using( var sinkFactory = new VsTestResultSinkFactory( assemblyTests.Key, frameworkHandle, _closeableSource.Create() ) )
                     {
                         try
                         {
@@ -75,7 +71,8 @@ namespace Chuck.VisualStudio
 
         public void Cancel()
         {
-            _cancellable.Cancel();
+            _closeableSource.Close();
+            _closeableSource = new CloseableSource();
         }
     }
 }

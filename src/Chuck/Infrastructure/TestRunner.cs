@@ -26,21 +26,39 @@ namespace Chuck.Infrastructure
         }
 
 
-        public async Task RunAsync( TestMethod testMethod, ITestResultSink resultRecorder )
+        public async Task RunAsync( TestMethod testMethod, ITestResultSink resultSink )
         {
-            var assembly = Assembly.Load( testMethod.AssemblyName );
+            Assembly assembly;
+            try
+            {
+                assembly = Assembly.Load( testMethod.AssemblyName );
+            }
+            catch( Exception e )
+            {
+                throw new InvalidOperationException( $"Could not load assembly {testMethod.AssemblyName}.", e );
+            }
+
             var type = assembly.GetType( testMethod.TypeName );
+            if( type == null )
+            {
+                throw new InvalidOperationException( $"Type '{testMethod.TypeName}' not found in assembly {assembly.GetName().Name}." );
+            }
+
             var methods = type.GetMethods( BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static )
                               .Where( m => m.Name == testMethod.Name );
+            if( !methods.Any() )
+            {
+                throw new InvalidOperationException( $"Method '{testMethod.Name}' not found in type {testMethod.TypeName}." );
+            }
 
             foreach( var method in methods )
             {
-                if( resultRecorder.IsCancelled )
+                if( resultSink.IsClosed )
                 {
                     return;
                 }
 
-                await RunAsync( method, resultRecorder );
+                await RunAsync( method, resultSink );
             }
         }
 
@@ -50,12 +68,12 @@ namespace Chuck.Infrastructure
         }
 
 
-        private async Task RunAsync( MethodInfo method, ITestResultSink resultRecorder )
+        private async Task RunAsync( MethodInfo method, ITestResultSink resultSink )
         {
             var skipAttribute = method.GetCustomAttribute<SkipAttribute>() ?? method.DeclaringType.GetCustomAttribute<SkipAttribute>();
             if( skipAttribute != null )
             {
-                resultRecorder.Record( TestResult.Skipped( method.Name, skipAttribute.Reason ) );
+                resultSink.Record( TestResult.Skipped( method.Name, skipAttribute.Reason ) );
                 return;
             }
 
@@ -63,6 +81,15 @@ namespace Chuck.Infrastructure
 
             try
             {
+                if( ReflectionUtilities.IsAsyncVoid( method ) )
+                {
+                    throw new TestCreationException(
+                        $"Method {ReflectionUtilities.GetNameWithParameters( method )} is async but returns void, "
+                       + "which is not allowed for test methods. "
+                       + "Return Task instead."
+                    );
+                }
+
                 if( ReflectionUtilities.HasReturnValue( method ) )
                 {
                     throw new TestCreationException(
@@ -75,18 +102,18 @@ namespace Chuck.Infrastructure
             }
             catch( TestCreationException e )
             {
-                resultRecorder.Record( TestResult.Skipped( method.Name, e.Message ) );
+                resultSink.Record( TestResult.Skipped( method.Name, e.Message ) );
                 return;
             }
             catch( Exception e )
             {
-                resultRecorder.Record( TestResult.Skipped( method.Name, "Internal error." + Environment.NewLine + e.ToString() ) );
+                resultSink.Record( TestResult.Skipped( method.Name, "Internal error." + Environment.NewLine + e.ToString() ) );
                 return;
             }
 
             foreach( var runner in runners )
             {
-                if( resultRecorder.IsCancelled )
+                if( resultSink.IsClosed )
                 {
                     return;
                 }
@@ -115,7 +142,7 @@ namespace Chuck.Infrastructure
 
                 foreach( var result in results )
                 {
-                    resultRecorder.Record( result );
+                    resultSink.Record( result );
                 }
             }
         }

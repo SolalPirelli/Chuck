@@ -9,20 +9,20 @@ namespace Chuck.VisualStudio
     {
         private readonly string _source;
         private readonly ITestExecutionRecorder _recorder;
-        private readonly ICancellable _cancellable;
+        private readonly ICloseable _closeable;
         private readonly VS.TestCase _vsTestCase;
         private VS.TestOutcome _finalOutcome;
         private bool _atLeastOneSkipped;
 
 
-        public bool IsCancelled => _cancellable.IsCancelled;
+        public bool IsClosed => _closeable.IsClosed;
 
 
-        public VsTestResultSink( TestMethod testMethod, string source, ITestExecutionRecorder recorder, ICancellable cancellable )
+        public VsTestResultSink( TestMethod testMethod, string source, ITestExecutionRecorder recorder, ICloseable closeable )
         {
             _source = source;
             _recorder = recorder;
-            _cancellable = cancellable;
+            _closeable = closeable;
             _vsTestCase = ConvertToTestCase( testMethod );
 
             _recorder.RecordStart( _vsTestCase );

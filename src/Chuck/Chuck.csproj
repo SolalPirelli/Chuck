@@ -34,7 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assertions.cs" />
-    <Compile Include="Infrastructure\ICancellable.cs" />
+    <Compile Include="Infrastructure\ICloseable.cs" />
     <Compile Include="Infrastructure\ITestDiscoverySink.cs" />
     <Compile Include="Infrastructure\ITestResultSink.cs" />
     <Compile Include="Infrastructure\TestDataAttribute.cs" />

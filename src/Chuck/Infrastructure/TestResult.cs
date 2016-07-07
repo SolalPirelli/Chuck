@@ -11,7 +11,7 @@ namespace Chuck.Infrastructure
         public string Name { get; }
 
         /// <summary>
-        /// Gets the reason the test was skipped, or null if the test was not skipped.
+        /// Gets the reason the test was skipped, if the test was skipped.
         /// </summary>
         public string SkipReason { get; }
 
@@ -20,6 +20,7 @@ namespace Chuck.Infrastructure
         /// </summary>
         public string FailureMessage { get; }
 
+        // TODO: Stack trace
         /// <summary>
         /// Gets a description of the exception thrown by the test, if an error occurred during execution.
         /// </summary>

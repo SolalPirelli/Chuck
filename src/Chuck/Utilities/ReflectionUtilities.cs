@@ -23,9 +23,10 @@ namespace Chuck.Utilities
             return method.ReturnType == typeof( Task ) || method.ReturnType.IsSubclassOf( typeof( Task ) );
         }
 
-        public static bool UsesAwait( MethodInfo method )
+        public static bool IsAsyncVoid( MethodInfo method )
         {
-            return method.GetCustomAttribute<AsyncStateMachineAttribute>() != null;
+            return method.GetCustomAttribute<AsyncStateMachineAttribute>() != null
+                && method.ReturnType == typeof( void );
         }
 
         public static bool HasReturnValue( MethodInfo method )
