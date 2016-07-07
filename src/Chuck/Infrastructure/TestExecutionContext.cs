@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Reflection;
 
 namespace Chuck.Infrastructure
 {
     public sealed class TestExecutionContext
     {
-        public MethodInfo Method { get; }
+        public Test Test { get; }
         public IServiceProvider Services { get; }
         public TestPropertyBag ExtraData { get; }
 
 
-        public TestExecutionContext( MethodInfo method, IServiceProvider services,TestPropertyBag extraData )
+        public TestExecutionContext( Test test, IServiceProvider services, TestPropertyBag extraData )
         {
-            Method = method;
+            Test = test;
             Services = services;
             ExtraData = extraData;
         }

@@ -24,7 +24,7 @@ namespace Chuck
 
         public override IEnumerable<TestData> GetData( TestExecutionContext context )
         {
-            var name = PrettyPrinter.Print( context.Method, _values );
+            var name = PrettyPrinter.Print( context.Test.Method, _values );
             return new[] { new TestData( name, _values ) };
         }
     }

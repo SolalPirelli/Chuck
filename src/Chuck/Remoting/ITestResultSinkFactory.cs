@@ -4,6 +4,6 @@ namespace Chuck.Remoting
 {
     public interface ITestResultSinkFactory
     {
-        ITestResultSink Create( TestMethod testMethod );
+        ITestResultSink Create( Test test );
     }
 }

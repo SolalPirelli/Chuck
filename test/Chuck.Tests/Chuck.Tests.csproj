@@ -68,14 +68,6 @@
       <Project>{8fd779f1-0c8a-4716-b3da-9fc827202999}</Project>
       <Name>Chuck</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Chuck.Tests.Data.Discovery\Chuck.Tests.Data.Discovery.csproj">
-      <Project>{e65e3d23-5b7c-4c56-a308-39bb61e4d5ac}</Project>
-      <Name>Chuck.Tests.Data.Discovery</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Chuck.Tests.Data.Execution\Chuck.Tests.Data.Execution.csproj">
-      <Project>{4acdd6f0-0445-45d3-b84e-5098286ffdb1}</Project>
-      <Name>Chuck.Tests.Data.Execution</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

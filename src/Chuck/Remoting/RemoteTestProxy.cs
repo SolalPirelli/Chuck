@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Chuck.Infrastructure;
 
@@ -8,7 +10,13 @@ namespace Chuck.Remoting
     {
         public void DiscoverTests( string assemblyLocation, ITestDiscoverySink discoverySink )
         {
-            TestDiscoverer.DiscoverTests( assemblyLocation, discoverySink );
+            var assembly = Assembly.LoadFrom( assemblyLocation );
+            
+            foreach( var type in assembly.GetTypes().OrderBy( t => t.FullName ) )
+            {
+                TestDiscoverer.DiscoverTests( type, discoverySink );
+            }
+
         }
 
         public WaitHandle RunTests( string assemblyLocation, ITestResultSinkFactory resultSinkFactory )
@@ -18,10 +26,10 @@ namespace Chuck.Remoting
             return waitHandle;
         }
 
-        public WaitHandle RunTests( IReadOnlyList<TestMethod> testMethods, ITestResultSinkFactory resultSinkFactory )
+        public WaitHandle RunTests( IReadOnlyList<Test> tests, ITestResultSinkFactory resultSinkFactory )
         {
             var waitHandle = new ManualResetEvent( false );
-            RunTests( testMethods, resultSinkFactory, waitHandle );
+            RunTests( tests, resultSinkFactory, waitHandle );
             return waitHandle;
         }
 
@@ -31,7 +39,7 @@ namespace Chuck.Remoting
             try
             {
                 // TODO this is suboptimal, have a sink that immediately executes instead
-                var tests = new ListDiscoverySink();
+                var tests = new TestList();
                 DiscoverTests( assemblyLocation, tests );
 
                 using( var runner = new TestRunner() )
@@ -51,13 +59,13 @@ namespace Chuck.Remoting
             }
         }
 
-        private async void RunTests( IReadOnlyList<TestMethod> testMethods, ITestResultSinkFactory resultSinkFactory, EventWaitHandle waitHandle )
+        private async void RunTests( IReadOnlyList<Test> tests, ITestResultSinkFactory resultSinkFactory, EventWaitHandle waitHandle )
         {
             try
             {
                 using( var runner = new TestRunner() )
                 {
-                    foreach( var test in testMethods )
+                    foreach( var test in tests )
                     {
                         using( var resultSink = resultSinkFactory.Create( test ) )
                         {
@@ -73,16 +81,16 @@ namespace Chuck.Remoting
         }
 
 
-        private sealed class ListDiscoverySink : ITestDiscoverySink
+        private sealed class TestList : ITestDiscoverySink
         {
             public bool IsClosed { get; } = false;
 
-            public List<TestMethod> Values { get; } = new List<TestMethod>();
+            public List<Test> Values { get; } = new List<Test>();
 
 
-            public void Discover( TestMethod testMethod )
+            public void Discover( Test test )
             {
-                Values.Add( testMethod );
+                Values.Add( test );
             }
         }
     }

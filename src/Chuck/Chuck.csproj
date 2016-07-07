@@ -37,6 +37,7 @@
     <Compile Include="Infrastructure\ICloseable.cs" />
     <Compile Include="Infrastructure\ITestDiscoverySink.cs" />
     <Compile Include="Infrastructure\ITestResultSink.cs" />
+    <Compile Include="Infrastructure\Test.cs" />
     <Compile Include="Infrastructure\TestDataAttribute.cs" />
     <Compile Include="Infrastructure\TestPropertyBag.cs" />
     <Compile Include="Remoting\ITestResultSinkFactory.cs" />
@@ -46,7 +47,6 @@
     <Compile Include="Infrastructure\TestPartialResult.cs" />
     <Compile Include="Infrastructure\TestData.cs" />
     <Compile Include="Infrastructure\TestExecutionContext.cs" />
-    <Compile Include="Infrastructure\TestMethod.cs" />
     <Compile Include="Infrastructure\TestRunner.cs" />
     <Compile Include="Infrastructure\TestLocation.cs" />
     <Compile Include="Infrastructure\TestCreationException.cs" />

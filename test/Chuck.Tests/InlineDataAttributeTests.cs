@@ -20,8 +20,8 @@ namespace Chuck.Tests
 
             public Data()
             {
-                var method = GetType().GetMethod( nameof( MyMethod ) );
-                var context = new TestExecutionContext( method, new FakeServiceProvider(), new TestPropertyBag() );
+                var test = new Test( GetType(), GetType().GetMethod( nameof( MyMethod ) ) );
+                var context = new TestExecutionContext( test, new FakeServiceProvider(), new TestPropertyBag() );
 
                 var attr = new InlineDataAttribute( 1, 2, 3 );
 

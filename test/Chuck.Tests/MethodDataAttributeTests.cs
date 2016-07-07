@@ -64,8 +64,8 @@ namespace Chuck.Tests
         [Xunit.InlineData( nameof( SingleArgumentWrongReturnType2 ) )]
         public void ErrorOnSingleArgumentMethod( string name )
         {
-            var method = GetType().GetMethod( nameof( SingleArgument ) );
-            var context = new TestExecutionContext( method, new FakeServiceProvider(), new TestPropertyBag() );
+            var test = GetTest( nameof( SingleArgument ) );
+            var context = new TestExecutionContext( test, new FakeServiceProvider(), new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( name );
 
@@ -78,8 +78,8 @@ namespace Chuck.Tests
         [Xunit.InlineData( nameof( SingleArgumentSet ) )]
         public void SingleArgumentMethod( string name )
         {
-            var method = GetType().GetMethod( nameof( SingleArgument ) );
-            var context = new TestExecutionContext( method, new FakeServiceProvider(), new TestPropertyBag() );
+            var test = GetTest( nameof( SingleArgument ) );
+            var context = new TestExecutionContext( test, new FakeServiceProvider(), new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( name );
 
@@ -143,8 +143,8 @@ namespace Chuck.Tests
         [Xunit.InlineData( nameof( MultipleArgumentsWrongReturnType2 ) )]
         public void ErrorOnMultipleArgumentsMethod( string name )
         {
-            var method = GetType().GetMethod( nameof( MultipleArguments ) );
-            var context = new TestExecutionContext( method, new FakeServiceProvider(), new TestPropertyBag() );
+            var test = GetTest( nameof( MultipleArguments ) );
+            var context = new TestExecutionContext( test, new FakeServiceProvider(), new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( name );
 
@@ -157,8 +157,8 @@ namespace Chuck.Tests
         [Xunit.InlineData( nameof( MultipleArgumentsSet ) )]
         public void MultipleArgumentsMethod( string name )
         {
-            var method = GetType().GetMethod( nameof( MultipleArguments ) );
-            var context = new TestExecutionContext( method, new FakeServiceProvider(), new TestPropertyBag() );
+            var test = GetTest( nameof( MultipleArguments ) );
+            var context = new TestExecutionContext( test, new FakeServiceProvider(), new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( name );
 
@@ -182,8 +182,8 @@ namespace Chuck.Tests
         [Fact]
         public void UsingOtherType()
         {
-            var method = GetType().GetMethod( nameof( MultipleArguments ) );
-            var context = new TestExecutionContext( method, new FakeServiceProvider(), new TestPropertyBag() );
+            var test = GetTest( nameof( MultipleArguments ) );
+            var context = new TestExecutionContext( test, new FakeServiceProvider(), new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( nameof( DataProvider.GetData ) )
             {
@@ -224,10 +224,10 @@ namespace Chuck.Tests
         [Fact]
         public void WithInjectedService()
         {
-            var method = GetType().GetMethod( nameof( SingleArgument ) );
+            var test = GetTest( nameof( SingleArgument ) );
             var serviceProvider = new FakeServiceProvider();
             serviceProvider.Services.Add( typeof( IIntProvider ), new MyIntProvider() );
-            var context = new TestExecutionContext( method, serviceProvider, new TestPropertyBag() );
+            var context = new TestExecutionContext( test, serviceProvider, new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( nameof( DataWithProvider ) );
 
@@ -244,11 +244,11 @@ namespace Chuck.Tests
         [Xunit.InlineData( false, 2 )]
         public void Cache( bool cache, int expected )
         {
-            var method = GetType().GetMethod( nameof( SingleArgument ) );
+            var test = GetTest( nameof( SingleArgument ) );
             var serviceProvider = new FakeServiceProvider();
             var intProvider = new MyIntProvider();
             serviceProvider.Services.Add( typeof( IIntProvider ), intProvider );
-            var context = new TestExecutionContext( method, serviceProvider, new TestPropertyBag() );
+            var context = new TestExecutionContext( test, serviceProvider, new TestPropertyBag() );
 
             var attr = new MethodDataAttribute( nameof( DataWithProvider ) )
             {
@@ -259,6 +259,13 @@ namespace Chuck.Tests
             attr.GetData( context ).ToArray();
 
             Assert.Equal( expected, intProvider.Count );
+        }
+
+
+        private static Test GetTest( string name )
+        {
+            var type = typeof( MethodDataAttributeTests );
+            return new Test( type, type.GetMethod( name ) );
         }
 
         private sealed class FakeServiceProvider : IServiceProvider

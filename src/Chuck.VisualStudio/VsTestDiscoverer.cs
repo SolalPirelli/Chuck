@@ -22,7 +22,7 @@ namespace Chuck.VisualStudio
                 {
                     logger.SendMessage( TestMessageLevel.Informational, $"Discovering: {assemblyPath}" );
 
-                    using( var sink = new VsTestDiscoverySink( assemblyPath, discoverySink ) )
+                    using( var sink = new VsTestDiscoverySink( discoverySink ) )
                     {
                         try
                         {

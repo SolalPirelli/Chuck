@@ -14,7 +14,7 @@ namespace Chuck.Infrastructure
         }
 
 
-        public bool Contains(Type owner, string name)
+        public bool Contains( Type owner, string name )
         {
             return _values.ContainsKey( owner ) && _values[owner].ContainsKey( name );
         }

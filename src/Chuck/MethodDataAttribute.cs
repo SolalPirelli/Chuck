@@ -36,7 +36,7 @@ namespace Chuck
                 return GetValues( context );
             }
 
-            var containingType = ContainingType ?? context.Method.DeclaringType;
+            var containingType = ContainingType ?? context.Test.Type;
             var cacheKey = $"{containingType.FullName}_{MethodName}";
 
             if( !context.ExtraData.Contains( typeof( MethodDataAttribute ), cacheKey ) )
@@ -49,7 +49,7 @@ namespace Chuck
 
         private TestData[] GetValues( TestExecutionContext context )
         {
-            var containingType = ContainingType ?? context.Method.DeclaringType;
+            var containingType = ContainingType ?? context.Test.Type;
 
             var candidates = containingType.GetTypeInfo()
                                            .GetMethods( BindingFlags.Public | BindingFlags.Static )
@@ -69,7 +69,7 @@ namespace Chuck
             }
 
             var method = candidates[0];
-            var targetParameters = context.Method.GetParameters();
+            var targetParameters = context.Test.Method.GetParameters();
             if( targetParameters.Length == 1 )
             {
                 var targetType = typeof( IEnumerable<> ).MakeGenericType( targetParameters[0].ParameterType );
@@ -118,7 +118,7 @@ namespace Chuck
                     arrayArgs = ( (IEnumerable) arg ).Cast<object>().ToArray();
                 }
 
-                var name = PrettyPrinter.Print( context.Method, arrayArgs );
+                var name = PrettyPrinter.Print( context.Test.Method, arrayArgs );
                 return new TestData( name, arrayArgs );
             } ).ToArray();
         }

@@ -1,42 +1,33 @@
-﻿using System;
+﻿using System.Reflection;
 using Chuck.Infrastructure;
 using Chuck.Remoting;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
 namespace Chuck.VisualStudio
 {
     public sealed class VsTestDiscoverySink : LongLivedMarshalByRefObject, ITestDiscoverySink
     {
-        private readonly string _source;
         private readonly ITestCaseDiscoverySink _vsDiscoverySink;
 
 
         public bool IsClosed { get; private set; }
 
 
-        public VsTestDiscoverySink( string source, ITestCaseDiscoverySink vsDiscoverySink )
+        public VsTestDiscoverySink( ITestCaseDiscoverySink vsDiscoverySink )
         {
-            _source = source;
             _vsDiscoverySink = vsDiscoverySink;
         }
 
 
-        public void Discover( TestMethod testMethod )
+        public void Discover( Test test )
         {
             if( IsClosed )
             {
                 return;
             }
 
-            var testCase = new TestCase( testMethod.FullyQualifiedName, VsTestExecutor.Uri, _source )
-            {
-                DisplayName = testMethod.Name
-            };
-
-            testCase.SetPropertyValue( VsTestProperties.Name, testMethod.Name );
-            testCase.SetPropertyValue( VsTestProperties.TypeName, testMethod.TypeName );
-            testCase.SetPropertyValue( VsTestProperties.AssemblyName, testMethod.AssemblyName );
+            var testCase = VsConverter.ConvertTestCase( test );
+            testCase.SetPropertyValue( VsTestProperties.Test, test );
 
             var location = default( TestLocation ); // TODO
             if( location != null )

@@ -1,4 +1,5 @@
-﻿using Chuck.Infrastructure;
+﻿using System.Reflection;
+using Chuck.Infrastructure;
 using Chuck.Remoting;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using VS = Microsoft.VisualStudio.TestPlatform.ObjectModel;
@@ -7,7 +8,6 @@ namespace Chuck.VisualStudio
 {
     public sealed class VsTestResultSink : LongLivedMarshalByRefObject, ITestResultSink
     {
-        private readonly string _source;
         private readonly ITestExecutionRecorder _recorder;
         private readonly ICloseable _closeable;
         private readonly VS.TestCase _vsTestCase;
@@ -18,12 +18,11 @@ namespace Chuck.VisualStudio
         public bool IsClosed => _closeable.IsClosed;
 
 
-        public VsTestResultSink( TestMethod testMethod, string source, ITestExecutionRecorder recorder, ICloseable closeable )
+        public VsTestResultSink( Test test, ITestExecutionRecorder recorder, ICloseable closeable )
         {
-            _source = source;
             _recorder = recorder;
             _closeable = closeable;
-            _vsTestCase = ConvertToTestCase( testMethod );
+            _vsTestCase = VsConverter.ConvertTestCase( test );
 
             _recorder.RecordStart( _vsTestCase );
         }
@@ -46,7 +45,7 @@ namespace Chuck.VisualStudio
                     break;
             }
         }
-        
+
         public override void Dispose()
         {
             if( _finalOutcome == VS.TestOutcome.None )
@@ -59,11 +58,6 @@ namespace Chuck.VisualStudio
             base.Dispose();
         }
 
-
-        private VS.TestCase ConvertToTestCase( TestMethod testMethod )
-        {
-            return new VS.TestCase( testMethod.FullyQualifiedName, VsTestExecutor.Uri, _source );
-        }
 
         private VS.TestResult ConvertToTestResult( TestResult testResult )
         {

@@ -24,56 +24,15 @@ namespace Chuck.Infrastructure
             _containers = new TestContainerCreator( _services );
             _extraData = new TestPropertyBag();
         }
+        
 
-
-        public async Task RunAsync( TestMethod testMethod, ITestResultSink resultSink )
+        public async Task RunAsync( Test test, ITestResultSink resultSink )
         {
-            Assembly assembly;
-            try
-            {
-                assembly = Assembly.Load( testMethod.AssemblyName );
-            }
-            catch( Exception e )
-            {
-                throw new InvalidOperationException( $"Could not load assembly {testMethod.AssemblyName}.", e );
-            }
-
-            var type = assembly.GetType( testMethod.TypeName );
-            if( type == null )
-            {
-                throw new InvalidOperationException( $"Type '{testMethod.TypeName}' not found in assembly {assembly.GetName().Name}." );
-            }
-
-            var methods = type.GetMethods( BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static )
-                              .Where( m => m.Name == testMethod.Name );
-            if( !methods.Any() )
-            {
-                throw new InvalidOperationException( $"Method '{testMethod.Name}' not found in type {testMethod.TypeName}." );
-            }
-
-            foreach( var method in methods )
-            {
-                if( resultSink.IsClosed )
-                {
-                    return;
-                }
-
-                await RunAsync( method, resultSink );
-            }
-        }
-
-        public void Dispose()
-        {
-            _services.Dispose();
-        }
-
-
-        private async Task RunAsync( MethodInfo method, ITestResultSink resultSink )
-        {
-            var skipAttribute = method.GetCustomAttribute<SkipAttribute>() ?? method.DeclaringType.GetCustomAttribute<SkipAttribute>();
+            var skipAttribute = test.Method.GetCustomAttribute<SkipAttribute>()
+                             ?? test.Type.GetCustomAttribute<SkipAttribute>();
             if( skipAttribute != null )
             {
-                resultSink.Record( TestResult.Skipped( method.Name, skipAttribute.Reason ) );
+                resultSink.Record( TestResult.Skipped( test.Method.Name, skipAttribute.Reason ) );
                 return;
             }
 
@@ -81,33 +40,33 @@ namespace Chuck.Infrastructure
 
             try
             {
-                if( ReflectionUtilities.IsAsyncVoid( method ) )
+                if( ReflectionUtilities.IsAsyncVoid( test.Method ) )
                 {
                     throw new TestCreationException(
-                        $"Method {ReflectionUtilities.GetNameWithParameters( method )} is async but returns void, "
+                        $"Method {ReflectionUtilities.GetNameWithParameters( test.Method )} is async but returns void, "
                        + "which is not allowed for test methods. "
                        + "Return Task instead."
                     );
                 }
 
-                if( ReflectionUtilities.HasReturnValue( method ) )
+                if( ReflectionUtilities.HasReturnValue( test.Method ) )
                 {
                     throw new TestCreationException(
-                        $"Method {ReflectionUtilities.GetNameWithParameters( method )} returns a value, "
+                        $"Method {ReflectionUtilities.GetNameWithParameters( test.Method )} returns a value, "
                        + "which is not allowed for test methods."
                     );
                 }
 
-                runners = GetRunners( method );
+                runners = GetRunners( test );
             }
             catch( TestCreationException e )
             {
-                resultSink.Record( TestResult.Skipped( method.Name, e.Message ) );
+                resultSink.Record( TestResult.Skipped( test.Method.Name, e.Message ) );
                 return;
             }
             catch( Exception e )
             {
-                resultSink.Record( TestResult.Skipped( method.Name, "Internal error." + Environment.NewLine + e.ToString() ) );
+                resultSink.Record( TestResult.Skipped( test.Method.Name, "Internal error." + Environment.NewLine + e.ToString() ) );
                 return;
             }
 
@@ -147,33 +106,39 @@ namespace Chuck.Infrastructure
             }
         }
 
-        private IEnumerable<Runner> GetRunners( MethodInfo testMethod )
+        public void Dispose()
         {
-            if( testMethod.DeclaringType.IsGenericType )
+            _services.Dispose();
+        }
+
+
+        private IEnumerable<Runner> GetRunners( Test test )
+        {
+            if( test.Type.IsGenericType )
             {
                 throw new TestCreationException(
-                    $"Type {testMethod.DeclaringType.FullName} has generic parameters, "
+                    $"Type {test.Type.FullName} has generic parameters, "
                    + "and thus cannot be used as a test container."
                    + Environment.NewLine
                    + "Either remove the parameters, or annotate it with the [NoTests] attribute."
                 );
             }
-            if( testMethod.IsGenericMethod )
+            if( test.Method.IsGenericMethod )
             {
                 throw new TestCreationException(
-                    $"Method {ReflectionUtilities.GetNameWithParameters( testMethod )} has generic parameters, "
+                    $"Method {ReflectionUtilities.GetNameWithParameters( test.Method )} has generic parameters, "
                    + "and thus cannot be used as a test method."
                 );
             }
 
-            var parameters = testMethod.GetParameters();
-            var dataAttributes = testMethod.GetCustomAttributes<TestDataAttribute>();
+            var parameters = test.Method.GetParameters();
+            var dataAttributes = test.Method.GetCustomAttributes<TestDataAttribute>();
             if( dataAttributes.Any() )
             {
                 if( parameters.Length == 0 )
                 {
                     throw new TestCreationException(
-                        $"Method {ReflectionUtilities.GetNameWithParameters( testMethod )} takes no parameters, "
+                        $"Method {ReflectionUtilities.GetNameWithParameters( test.Method )} takes no parameters, "
                        + "but test data was provided."
                        + Environment.NewLine
                        + "Either remove the test data, or add parameters to the method."
@@ -185,7 +150,7 @@ namespace Chuck.Infrastructure
                 if( parameters.Length != 0 )
                 {
                     throw new TestCreationException(
-                        $"Method {ReflectionUtilities.GetNameWithParameters( testMethod )} takes parameters, "
+                        $"Method {ReflectionUtilities.GetNameWithParameters( test.Method )} takes parameters, "
                        + "but no test data was provided."
                        + Environment.NewLine
                        + "Use attributes such as [InlineData] to provide data for parameterized tests."
@@ -195,15 +160,15 @@ namespace Chuck.Infrastructure
                 dataAttributes = NullDataAttribute.Instance;
             }
 
-            var context = new TestExecutionContext( testMethod, _services, _extraData );
+            var context = new TestExecutionContext( test, _services, _extraData );
 
             return dataAttributes.SelectMany( d => d.GetData( context ) )
-                                 .Select( d => GetRunner( testMethod, d ) );
+                                 .Select( d => GetRunner( test, d ) );
         }
 
-        private Runner GetRunner( MethodInfo testMethod, TestData data )
+        private Runner GetRunner( Test test, TestData data )
         {
-            var parameters = testMethod.GetParameters();
+            var parameters = test.Method.GetParameters();
 
             if( data.Arguments == null )
             {
@@ -221,15 +186,15 @@ namespace Chuck.Infrastructure
                 );
             }
 
-            var isAsync = ReflectionUtilities.IsAwaitable( testMethod );
+            var isAsync = ReflectionUtilities.IsAwaitable( test.Method );
 
             return new Runner( data.Name,
                 () =>
                 {
-                    var container = _containers.GetService( testMethod.DeclaringType );
+                    var container = _containers.GetService( test.Type );
                     try
                     {
-                        var result = testMethod.Invoke( container, data.Arguments );
+                        var result = test.Method.Invoke( container, data.Arguments );
 
                         if( isAsync )
                         {
@@ -385,7 +350,7 @@ namespace Chuck.Infrastructure
 
             public override IEnumerable<TestData> GetData( TestExecutionContext context )
             {
-                return new[] { new TestData( context.Method.Name, null ) };
+                return new[] { new TestData( context.Test.Method.Name, null ) };
             }
         }
     }

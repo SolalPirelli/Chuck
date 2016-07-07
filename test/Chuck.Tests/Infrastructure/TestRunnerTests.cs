@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,31 +7,28 @@ namespace Chuck.Infrastructure.Tests
 {
     public sealed class TestRunnerTests
     {
-        [Theory]
-        [Xunit.InlineData( "Not.An.Assembly", "Type", "Method",
-                           "Could not load assembly Not.An.Assembly." )]
-        [Xunit.InlineData( "Chuck.Tests", "NotAType", "Method",
-                           "Type 'NotAType' not found in assembly Chuck.Tests." )]
-        [Xunit.InlineData( "Chuck.Tests", "Chuck.Infrastructure.Tests.TestRunnerTests", "NotAMethod",
-                           "Method 'NotAMethod' not found in type Chuck.Infrastructure.Tests.TestRunnerTests." )]
-        public async Task InvalidMethod( string assemblyName, string typeName, string methodName, string expectedMessage )
+        [Skip( "This class is skipped." )]
+        public sealed class Skipped
         {
-            var method = new TestMethod( assemblyName, typeName, methodName );
+            public void Method() { }
 
-            using( var runner = new TestRunner() )
-            {
-                var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => runner.RunAsync( method, new ResultList() )
-                );
+            [Skip( "This method is skipped." )]
+            public void SkippedMethod() { }
+        }
 
-                Assert.Equal( expectedMessage, ex.Message );
-            }
+        public sealed class Invalid
+        {
+            public int Int() { return 0; }
+
+            public Task<int> AsyncInt() { return Task.FromResult( 0 ); }
+
+            public async void AsyncVoid() { await Task.Delay( 0 ); }
         }
 
         [Theory]
-        [Xunit.InlineData( "Skipped", "Method", 
+        [Xunit.InlineData( "Skipped", "Method",
                            "This class is skipped." )]
-        [Xunit.InlineData( "Skipped", "SkippedMethod", 
+        [Xunit.InlineData( "Skipped", "SkippedMethod",
                            "This method is skipped." )]
         [Xunit.InlineData( "Invalid", "Int",
                            "Method Int() returns a value, which is not allowed for test methods." )]
@@ -42,12 +38,13 @@ namespace Chuck.Infrastructure.Tests
                            "Method AsyncVoid() is async but returns void, which is not allowed for test methods. Return Task instead." )]
         public async Task SkippedMethods( string typeName, string methodName, string expectedReason )
         {
-            var method = GetTestMethod( typeName, methodName );
+            var type = typeof( TestRunnerTests ).GetNestedType( typeName );
+            var method = type.GetMethod( methodName );
             var results = new ResultList();
 
             using( var runner = new TestRunner() )
             {
-                await runner.RunAsync( method, results );
+                await runner.RunAsync( new Test( type, method ), results );
             }
 
 
@@ -62,11 +59,60 @@ namespace Chuck.Infrastructure.Tests
         }
 
 
-        private TestMethod GetTestMethod( string typeName, string methodName )
+        public sealed class Normal
         {
-            var assembly = Assembly.Load( "Chuck.Tests.Data.Execution" );
-            return new TestMethod( assembly.GetType( "Chuck.Tests.Data.Execution." + typeName ), methodName );
+            public void Success() { }
+
+            public Task AsyncSuccess() { return Task.FromResult( 0 ); }
+
+
+            public void Error() { throw new Exception( "Error!" ); }
+
+            public Task AsyncError()
+            {
+                var source = new TaskCompletionSource<int>();
+                source.SetException( new Exception( "Error!" ) );
+                return source.Task;
+            }
+
+
+            public void Failure() { throw new TestFailureException( new[] { TestPartialResult.Failure( "Failed!" ) } ); }
+
+            public Task AsyncFailure()
+            {
+                var source = new TaskCompletionSource<int>();
+                source.SetException( new TestFailureException( new[] { TestPartialResult.Failure( "Failed!" ) } ) );
+                return source.Task;
+            }
+
+
+            public void IndirectSuccess()
+            {
+                throw new TestFailureException( new[] { TestPartialResult.Success() } );
+            }
+
+            public Task AsyncIndirectSuccess()
+            {
+                var source = new TaskCompletionSource<int>();
+                source.SetException( new TestFailureException( new[] { TestPartialResult.Success() } ) );
+                return source.Task;
+            }
+
+
+            public void IndirectError()
+            {
+                throw new TestFailureException( new[] { TestPartialResult.Error( new Exception( "Error!" ) ) } );
+            }
+
+            public Task AsyncIndirectError()
+            {
+                var source = new TaskCompletionSource<int>();
+                source.SetException( new TestFailureException( new[] { TestPartialResult.Error( new Exception( "Error!" ) ) } ) );
+                return source.Task;
+            }
         }
+
+
 
         private sealed class ResultList : ITestResultSink
         {

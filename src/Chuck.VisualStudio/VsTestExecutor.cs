@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Chuck.Infrastructure;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
@@ -24,40 +25,37 @@ namespace Chuck.VisualStudio
             {
                 using( var manager = new AppDomainManager( assemblyPath ) )
                 using( var proxy = manager.CreateProxy() )
-                using( var sinkFactory = new VsTestResultSinkFactory( assemblyPath, frameworkHandle, _closeableSource.Create() ) )
+                using( var sinkFactory = new VsTestResultSinkFactory( frameworkHandle, _closeableSource.Create() ) )
                 {
                     proxy.RunTests( assemblyPath, sinkFactory ).WaitOne();
                 }
             }
         }
 
-        public void RunTests( IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle )
+        public void RunTests( IEnumerable<TestCase> testCases, IRunContext runContext, IFrameworkHandle frameworkHandle )
         {
-            foreach( var assemblyTests in tests.GroupBy( t => t.Source ) )
+            foreach( var assemblyTests in testCases.GroupBy( t => t.Source ) )
             {
                 using( var manager = new AppDomainManager( assemblyTests.Key ) )
                 using( var proxy = manager.CreateProxy() )
                 {
-                    var testMethods = assemblyTests.Select( test =>
+                    var tests = assemblyTests.Select( testCase =>
                     {
-                        var assemblyName = test.GetPropertyValue<string>( VsTestProperties.AssemblyName, null );
-                        var typeName = test.GetPropertyValue<string>( VsTestProperties.TypeName, null );
-                        var name = test.GetPropertyValue<string>( VsTestProperties.Name, null );
+                        var test = testCase.GetPropertyValue<Test>( VsTestProperties.Test, null );
 
-                        if( name == null || typeName == null || assemblyName == null )
+                        if( test == null )
                         {
-                            frameworkHandle.SendMessage( TestMessageLevel.Error, $"Test {test.DisplayName} is missing properties." );
-                            return null;
+                            frameworkHandle.SendMessage( TestMessageLevel.Error, $"Test {test} is missing properties." );
                         }
 
-                        return new TestMethod( assemblyName, typeName, name );
+                        return test;
                     } ).Where( t => t != null ).ToArray();
 
-                    using( var sinkFactory = new VsTestResultSinkFactory( assemblyTests.Key, frameworkHandle, _closeableSource.Create() ) )
+                    using( var sinkFactory = new VsTestResultSinkFactory( frameworkHandle, _closeableSource.Create() ) )
                     {
                         try
                         {
-                            proxy.RunTests( testMethods, sinkFactory ).WaitOne();
+                            proxy.RunTests( tests, sinkFactory ).WaitOne();
                         }
                         catch( Exception e )
                         {

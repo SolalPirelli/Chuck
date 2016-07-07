@@ -2,6 +2,6 @@
 {
     public interface ITestDiscoverySink : ICloseable
     {
-        void Discover( TestMethod testMethod );
+        void Discover( Test test );
     }
 }
